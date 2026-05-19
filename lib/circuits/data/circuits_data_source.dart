@@ -141,7 +141,7 @@ class CircuitsDataSource {
     try {
       final progressList = List.filled(circuitsToDownload.length, 0.0);
 
-      final downloadFutures = <Future>[];
+      final downloadFutures = <Future<TaskStatusUpdate>>[];
       for (var i = 0; i < circuitsToDownload.length; i++) {
         final param = circuitsToDownload[i];
         final fileZip = File(param.temporaryZipDownloadPath!);
@@ -156,6 +156,7 @@ class CircuitsDataSource {
           baseDirectory: BaseDirectory.root,
           directory: path,
           filename: name,
+          retries: 3,
         );
 
         final downloadFuture = fileDownloader.download(
@@ -180,7 +181,17 @@ class CircuitsDataSource {
         downloadFutures.add(downloadFuture);
       }
 
-      await Future.wait(downloadFutures);
+      final results = await Future.wait(downloadFutures);
+
+      // Verify all downloads completed successfully
+      for (final result in results) {
+        if (result.status != TaskStatus.complete) {
+          throw Exception(
+            'Download failed for ${result.task.taskId}: '
+            '${result.exception?.description ?? result.status.name}',
+          );
+        }
+      }
     } catch (e) {
       _cancelToken.cancel();
       _controller.add(DownloadResponseDTO(

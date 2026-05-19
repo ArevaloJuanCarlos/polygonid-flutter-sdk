@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:polygonid_flutter_sdk/common/domain/entities/env_config_entity.dart';
 import 'package:polygonid_flutter_sdk/common/domain/use_case.dart';
 import 'package:polygonid_flutter_sdk/common/infrastructure/stacktrace_stream_manager.dart';
+import 'package:polygonid_flutter_sdk/common/utils/collection_utils.dart';
 import 'package:polygonid_flutter_sdk/common/utils/credential_sort_order.dart';
 import 'package:polygonid_flutter_sdk/credential/domain/entities/claim_entity.dart';
 import 'package:polygonid_flutter_sdk/credential/domain/use_cases/refresh_credential_use_case.dart';
@@ -26,6 +27,8 @@ class GetIden3commProofsParam {
 
   final Map<String, dynamic>? transactionData;
 
+  final List<String>? requestedCredentials;
+
   GetIden3commProofsParam({
     required this.message,
     required this.genesisDid,
@@ -34,6 +37,7 @@ class GetIden3commProofsParam {
     this.challenge,
     this.config,
     this.transactionData,
+    this.requestedCredentials,
   });
 }
 
@@ -109,7 +113,25 @@ class GetIden3commProofsUseCase
             );
           }
         }
-        CredentialEntity? credential = credentials.firstOrNull;
+        CredentialEntity? credential;
+
+        if (param.requestedCredentials != null && param.requestedCredentials!.isNotEmpty) {
+          credential = credentials.firstWhereOrNull(
+            (cred) => param.requestedCredentials!.contains(cred.id),
+          );
+
+          if (credential == null) {
+            _stacktraceManager.addError(
+              "[Authenticate] No credentials found for request: ${request.id} with requested credential ids: ${param.requestedCredentials}",
+            );
+            throw NoCredentialsFoundException(
+              proofRequest: request,
+              errorMessage: "No credentials found for request: ${request.id} with requested credential ids: ${param.requestedCredentials}",
+            );
+          }
+        } else {
+          credential = credentials.firstOrNull;
+        }
 
         if (credential != null && credential.expiration != null) {
           credential = await _checkCredentialExpirationAndTryRefreshIfExpired(

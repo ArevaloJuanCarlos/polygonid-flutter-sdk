@@ -695,6 +695,7 @@ class Iden3comm implements PolygonIdSdkIden3comm {
     String? challenge,
     EnvConfigEntity? config,
     Map<String, dynamic>? transactionData,
+    CredentialEntity? credential,
   }) {
     _stacktraceManager.clearStacktrace();
     return _getIden3commProofUseCase.execute(
@@ -708,6 +709,7 @@ class Iden3comm implements PolygonIdSdkIden3comm {
         challenge: challenge,
         config: config,
         transactionData: transactionData,
+        credential: credential,
       ),
     );
   }
@@ -721,6 +723,7 @@ class Iden3comm implements PolygonIdSdkIden3comm {
     String? pushToken,
     String? challenge,
     CircuitId circuitId = CircuitId.authV2,
+    List<String>? requestedCredentials,
   }) {
     _stacktraceManager.clearStacktrace();
     if (message is! AuthorizationRequestMessage) {
@@ -744,6 +747,7 @@ class Iden3comm implements PolygonIdSdkIden3comm {
         pushToken: pushToken,
         challenge: challenge,
         circuitId: circuitId,
+        requestedCredentials: requestedCredentials,
       ),
     );
   }

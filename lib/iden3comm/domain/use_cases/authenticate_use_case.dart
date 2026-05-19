@@ -31,6 +31,7 @@ class AuthenticateParam {
   final String? pushToken;
   final String? challenge;
   final CircuitId circuitId;
+  final List<String>? requestedCredentials;
 
   AuthenticateParam({
     required this.message,
@@ -40,6 +41,7 @@ class AuthenticateParam {
     this.pushToken,
     this.challenge,
     this.circuitId = CircuitId.authV2,
+    this.requestedCredentials,
   });
 }
 
@@ -125,6 +127,7 @@ class AuthenticateUseCase
         privateKey: param.privateKey,
         config: env.config,
         challenge: param.challenge,
+        requestedCredentials: param.requestedCredentials,
       ));
       _stacktraceManager
           .addTrace("[AuthenticateUseCase] _getIden3commProofsUseCase success");
